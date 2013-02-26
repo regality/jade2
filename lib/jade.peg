@@ -1,0 +1,86 @@
+start           = expression*
+
+expression      = line:line children:block?
+                  { if (children) {
+                      line.push({ what: 'children', value: children })
+                    }
+                    return line }
+
+block           = spaces:indent lines:expression* dedent
+                  { lines.forEach(function(line) {
+                      line.push({ what: 'indent', value: spaces });
+                    });
+                    return lines }
+
+line            = tags:element newline?
+                  { return tags }
+
+indent          = "{INDENT:" spaces:[0-9]+ "}" newline?
+                  { return parseInt(spaces.join('')) }
+
+dedent          = "{DEDENT}" newline?
+
+element         = doctype / htmlElemnt / textElement
+
+doctype         = "!!!" space? type:doctypes
+                  { return [ { what: 'doctype', value: type } ] }
+
+doctypes        = "5" / "default" / "xml" / "transitional" / "strict" / "frameset" / "1.1" / "basic" / "mobile"
+
+htmlElemnt      = tags:tag+ attrs:attrList? text:tagText?
+                  { if (attrs) {
+                      tags = tags.concat(attrs);
+                    }
+                    if (text) {
+                      tags.push({ what: 'text', value: text });
+                      //ags.push({ what: 'children', value: [ [ { what: 'text', value: text } ] ] });
+                    }
+                    return tags }
+
+tag             = htmlTag / cssClass / cssId
+
+attrList        = "(" attrs:attr+ ")"
+                  { return attrs }
+
+attr            = name:cssIdentifier "=" value:attrValue ","?
+                  { return { what: 'attr', value: { name: name, value: value } } }
+
+attrValue       = quotedStr
+
+tagText         = " " text:char*
+                  { return text.join('') }
+
+textElement     = "|" space? txt:char+
+                  { return [ { what: 'text', value: txt.join('') } ] }
+
+cssClass        = "." cls:cssIdentifier
+                  { return { what: 'class', value: cls } }
+
+cssId           = "#" id:cssIdentifier
+                  { return { what: 'id', value: id } }
+
+htmlTag         = l:letter+
+                  { return { what: 'tag', value: l.join('') } }
+
+cssIdentifier   = first:[a-zA-Z_] rest:[a-zA-Z0-9_-]+
+                  { return first + rest.join('') }
+
+quotedStr       = singleQuotedStr / doubleQuotedStr
+
+doubleQuotedStr = '"' str:[^"]* '"'
+                  { return str.join('') }
+
+singleQuotedStr = "'" str:[^']* "'"
+                  { return str.join('') }
+
+letter          = [a-z]
+
+space           = " "
+
+newline         = "\n"
+
+char            = [^\n]
+
+quote           = ['|"].
+
+anything        = .
