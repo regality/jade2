@@ -27,15 +27,19 @@ doctype         = "!!!" space? type:doctypes
 
 doctypes        = "5" / "default" / "xml" / "transitional" / "strict" / "frameset" / "1.1" / "basic" / "mobile"
 
-htmlElemnt      = tags:tag+ attrs:attrList? text:tagText?
+htmlElemnt      = tags:tag+ attrs:attrList? content:htmlTagContent?
                   { if (attrs) {
                       tags = tags.concat(attrs);
                     }
-                    if (text) {
-                      tags.push({ what: 'text', value: text });
-                      //ags.push({ what: 'children', value: [ [ { what: 'text', value: text } ] ] });
+                    if (content) {
+                      tags.push(content);
                     }
                     return tags }
+
+htmlTagContent  = tagVariable / tagText
+
+tagVariable     = "=" space? variable:jsIdentifier
+                  { return { what: 'variable', value: variable } }
 
 tag             = htmlTag / cssClass / cssId
 
@@ -48,7 +52,7 @@ attr            = name:cssIdentifier "=" value:attrValue ","?
 attrValue       = quotedStr
 
 tagText         = " " text:char*
-                  { return text.join('') }
+                  { return { what: 'text', value: text.join('') } }
 
 textElement     = "|" space? txt:char+
                   { return [ { what: 'text', value: txt.join('') } ] }
@@ -62,7 +66,10 @@ cssId           = "#" id:cssIdentifier
 htmlTag         = l:letter+
                   { return { what: 'tag', value: l.join('') } }
 
-cssIdentifier   = first:[a-zA-Z_] rest:[a-zA-Z0-9_-]+
+cssIdentifier   = first:[a-zA-Z_] rest:[a-zA-Z0-9_-]*
+                  { return first + rest.join('') }
+
+jsIdentifier    = first:[a-zA-Z_$] rest:[a-zA-Z0-9_$]*
                   { return first + rest.join('') }
 
 quotedStr       = singleQuotedStr / doubleQuotedStr
