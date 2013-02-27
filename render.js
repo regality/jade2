@@ -1,11 +1,14 @@
 var fs      = require('fs')
   , jade    = require('./lib/jade')
-  , file    = process.argv[2]
+  , argv    = require('optimist').demand(1).argv
+  , file    = argv._[0]
   ;
 
 var options = {
-  pretty: process.argv.indexOf('--pretty') !== -1,
+  pretty: argv.pretty,
+  __driver: argv.driver,
   title: 'zomga jade!'
 };
-var html = jade.renderFile(process.argv[2], options);
-process.stdout.write(html);
+
+var output = jade.renderFile(file, options);
+process.stdout.write(output);
