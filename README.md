@@ -5,13 +5,13 @@ Still a work in progress. Contributions welcome.
 
 ### TODO
 
-- [x] html
-- [x] classes
-- [x] ids
-- [x] attributes
-- [x] indention
-- [x] html rendering
-- [x] js rendering
+- [X] html
+- [X] classes
+- [X] ids
+- [X] attributes
+- [X] indention
+- [X] html rendering
+- [X] js rendering
 - [ ] iteration
 - [ ] conditionals
 - [ ] script tags
