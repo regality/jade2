@@ -10,3 +10,8 @@ html
       div#foo.bat(style='asdf')
       div.one.two.three(style="postion: absolute;") meow to the mix
         | but srsly
+    ul
+      each meow, i in mix
+        li
+          b= i
+          = meow

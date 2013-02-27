@@ -7,7 +7,13 @@ var fs      = require('fs')
 var options = {
   pretty: argv.pretty,
   __driver: argv.driver,
-  title: 'zomga jade!'
+  title: 'zomga jade!',
+  mix: [ 'purr', 'paw' ],
+  ppl: {
+    john: 'dead',
+    bill: 'alive',
+    joe: 'not dead yeat'
+  }
 };
 
 var output = jade.renderFile(file, options);

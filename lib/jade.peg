@@ -1,95 +1,107 @@
-start           = expression*
+start            = expression*
 
-expression      = line:line children:block?
-                  { if (children) {
-                      line.push({ what: 'children', value: children })
-                    }
-                    return line }
+expression       = line:line children:block?
+                   { if (children) {
+                       line.push({ what: 'children', value: children })
+                     }
+                     return line }
 
-block           = spaces:indent lines:expression* dedent
-                  { lines.forEach(function(line) {
-                      line.push({ what: 'indent', value: spaces });
-                    });
-                    return lines }
+block            = spaces:indent lines:expression* dedent
+                   { lines.forEach(function(line) {
+                       line.push({ what: 'indent', value: spaces });
+                     });
+                     return lines }
 
-line            = tags:element newline?
-                  { return tags }
+line             = tags:element newline
+                   { return tags }
 
-indent          = "{INDENT:" spaces:[0-9]+ "}" newline?
-                  { return parseInt(spaces.join('')) }
+indent           = "{INDENT:" spaces:[0-9]+ "}" newline?
+                   { return parseInt(spaces.join('')) }
 
-dedent          = "{DEDENT}" newline?
+dedent           = "{DEDENT}" newline?
 
-element         = doctype / htmlElemnt / textElement
+element          = doctype / eachIn / htmlElemnt / textElement / variableElement
 
-doctype         = doctypetag space? type:doctypes?
-                  { return [ { what: 'doctype', value: type || 'default' } ] }
+doctype          = doctypetag space? type:doctypes?
+                   { return [ { what: 'doctype', value: type || 'default' } ] }
 
-doctypetag      = "!!!" / "doctype"
+doctypetag       = "!!!" / "doctype"
 
-doctypes        = "5" / "default" / "xml" / "transitional" / "strict" / "frameset" / "1.1" / "basic" / "mobile"
+doctypes         = "5" / "default" / "xml" / "transitional" / "strict" / "frameset" / "1.1" / "basic" / "mobile"
 
-htmlElemnt      = tags:tag+ attrs:attrList? content:htmlTagContent?
-                  { if (attrs) {
-                      tags = tags.concat(attrs);
-                    }
-                    if (content) {
-                      tags.push(content);
-                    }
-                    return tags }
+eachIn           = eachInWithKey / eachInWithoutKey
 
-htmlTagContent  = tagVariable / tagText
+eachInWithKey    = "each " value:jsIdentifier "," space? key:jsIdentifier " in " collection:jsIdentifier
+                   { return [ { what: 'each', value: { value: value, key: key, collection: collection } } ] }
 
-tagVariable     = "=" space? variable:jsIdentifier
-                  { return { what: 'variable', value: variable } }
+eachInWithoutKey = "each " value:jsIdentifier " in " collection:jsIdentifier
+                   { return [ { what: 'each', value: { value: value, key: null, collection: collection } } ] }
 
-tag             = htmlTag / cssClass / cssId
+htmlElemnt       = tags:tag+ attrs:attrList? content:htmlTagContent?
+                   { if (attrs) {
+                       tags = tags.concat(attrs);
+                     }
+                     if (content) {
+                       tags.push(content);
+                     }
+                     return tags }
 
-attrList        = "(" attrs:attr+ ")"
-                  { return attrs }
+htmlTagContent   = tagVariable / tagText
 
-attr            = name:cssIdentifier "=" value:attrValue ","?
-                  { return { what: 'attr', value: { name: name, value: value } } }
+variableElement  = variable:tagVariable
+                   { return [ variable ] }
 
-attrValue       = quotedStr
 
-tagText         = " " text:char*
-                  { return { what: 'text', value: text.join('') } }
+tagVariable      = "=" space? variable:jsIdentifier
+                   { return { what: 'variable', value: variable } }
 
-textElement     = "|" space? txt:char+
-                  { return [ { what: 'text', value: txt.join('') } ] }
+tag              = htmlTag / cssClass / cssId
 
-cssClass        = "." cls:cssIdentifier
-                  { return { what: 'class', value: cls } }
+attrList         = "(" attrs:attr+ ")"
+                   { return attrs }
 
-cssId           = "#" id:cssIdentifier
-                  { return { what: 'id', value: id } }
+attr             = name:cssIdentifier "=" value:attrValue ","?
+                   { return { what: 'attr', value: { name: name, value: value } } }
 
-htmlTag         = l:letter+
-                  { return { what: 'tag', value: l.join('') } }
+attrValue        = quotedStr
 
-cssIdentifier   = first:[a-zA-Z_] rest:[a-zA-Z0-9_-]*
-                  { return first + rest.join('') }
+tagText          = " " text:char*
+                   { return { what: 'text', value: text.join('') } }
 
-jsIdentifier    = first:[a-zA-Z_$] rest:[a-zA-Z0-9_$]*
-                  { return first + rest.join('') }
+textElement      = "|" space? txt:char+
+                   { return [ { what: 'text', value: txt.join('') } ] }
 
-quotedStr       = singleQuotedStr / doubleQuotedStr
+cssClass         = "." cls:cssIdentifier
+                   { return { what: 'class', value: cls } }
 
-doubleQuotedStr = '"' str:[^"]* '"'
-                  { return str.join('') }
+cssId            = "#" id:cssIdentifier
+                   { return { what: 'id', value: id } }
 
-singleQuotedStr = "'" str:[^']* "'"
-                  { return str.join('') }
+htmlTag          = l:letter+
+                   { return { what: 'tag', value: l.join('') } }
 
-letter          = [a-z]
+cssIdentifier    = first:[a-zA-Z_] rest:[a-zA-Z0-9_-]*
+                   { return first + rest.join('') }
 
-space           = " "
+jsIdentifier     = first:[a-zA-Z_$] rest:[a-zA-Z0-9_$]*
+                   { return first + rest.join('') }
 
-newline         = "\n"
+quotedStr        = singleQuotedStr / doubleQuotedStr
 
-char            = [^\n]
+doubleQuotedStr  = '"' str:[^"]* '"'
+                   { return str.join('') }
 
-quote           = ['|"].
+singleQuotedStr  = "'" str:[^']* "'"
+                   { return str.join('') }
 
-anything        = .
+letter           = [a-z]
+
+space            = " "
+
+newline          = "\n"
+
+char             = [^\n]
+
+quote            = ['|"].
+
+anything         = .
