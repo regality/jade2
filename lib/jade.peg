@@ -22,8 +22,10 @@ dedent          = "{DEDENT}" newline?
 
 element         = doctype / htmlElemnt / textElement
 
-doctype         = "!!!" space? type:doctypes
-                  { return [ { what: 'doctype', value: type } ] }
+doctype         = doctypetag space? type:doctypes?
+                  { return [ { what: 'doctype', value: type || 'default' } ] }
+
+doctypetag      = "!!!" / "doctype"
 
 doctypes        = "5" / "default" / "xml" / "transitional" / "strict" / "frameset" / "1.1" / "basic" / "mobile"
 
